@@ -1,29 +1,39 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 
 // boolean 
 const showModal = ref(false);
 const newNote = ref("");
-const notes = ref([]);
+const notes = ref(JSON.parse(localStorage.getItem('notes') || '[]'));
 
 function getRandomColor() {
   return "hsl(" + Math.random() * 360 + ", 100%, 75%)";
 }
 
 const addNote = () => {
-  notes.value.push({
+  const newNoteObj = {
     id: Math.floor(Math.random() * 1000000),
     text: newNote.value,
-    date: new Date(),
+    date: new Date().toLocaleString('pt-BR'),
     backgroundColor: getRandomColor()
-  })
+  };
+  notes.value.push(newNoteObj);
   showModal.value = false;
   newNote.value = "";
+  // adding LocalStorage
+  localStorage.setItem('notes', JSON.stringify(notes.value));
 }
 
 const deleteNote = (id) => {
   notes.value = notes.value.filter(note => note.id !== id);
+  //adding LocalStorage
+  localStorage.setItem('notes', JSON.stringify(notes.value));
 }
+
+onMounted(() => {
+  const storedNotes = JSON.parse(localStorage.getItem('notes') || '[]');
+  notes.value = storedNotes;
+});
 </script>
 
 <template>
@@ -38,8 +48,6 @@ const deleteNote = (id) => {
       </div>
     </div>
 
-    <!-- <Overlay v-if="showModal = false"/> -->
-
       <div class="container">
         <header>
           <h1> MyNotes </h1>
@@ -49,7 +57,7 @@ const deleteNote = (id) => {
           <div v-bind:key="note.id"  v-for="note in notes" class="card" :style="{backgroundColor: note.backgroundColor}">
             <p class="main-text"> {{ note.text }} </p>
             <div class="card-footer">
-            <p class="date">{{ note.date.toLocaleDateString('pt-br') }}</p>
+            <p class="date">{{ note.date }}</p>
             <button class="delete-btn" @click="deleteNote(note.id)"> 
               <img src="./assets/trash.svg"/>
             </button>
@@ -80,7 +88,7 @@ const deleteNote = (id) => {
   h1 {
     font-weight: bold;
     margin-bottom: 25px;
-    font-size: 65px;
+    font-size: 55px;
   }
 
   header button {
